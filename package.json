@@ -1,0 +1,14 @@
+{
+  "name": "marks-lite-te",
+  "version": "1.0.0",
+  "description": "Lite template engine",
+  "main": "Index.js",
+  "repository": "https://github.com/NoMoreDeps/marks-lite-te.git",
+  "author": "NoMorDeps <fskorzec@outlook.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.9.7",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  }
+}
