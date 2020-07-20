@@ -31,18 +31,10 @@ function* LiteTEGenerator(source: string) {
   }; 
 }
 
-const source = `
-This is a text {%= context.text %}
-
-{% for(let i=0; i<2; i++) {%}
-  This is an Item : {%= i %}
-{% }%}
-
-Done !
-`;
-
 export function liteTE(source: string, context: any = {}) {
-  let fctBody = `let output = "";\n\n`;
+  let fctBody = `
+  const LF   = "\\n";\n
+  let output = "";\n\n`;
   for(let token of LiteTEGenerator(source)) {
     switch(token.type) {
       case TokenType.Text:
@@ -59,6 +51,5 @@ export function liteTE(source: string, context: any = {}) {
   }
 
   fctBody += `return output;`
-
-  return new Function("context", fctBody)(context);
+    return new Function(fctBody).call(context);
 }
