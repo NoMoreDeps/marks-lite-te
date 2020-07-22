@@ -30,11 +30,6 @@ function* LiteTEGenerator(source: string) {
     text: source.substr(scanIndex)
   }; 
 }
-function checkOutput(source: string) {
-  source = source.replace(/javascript\s*:/g, "");
-
-  return source;
-}
 
 function checkInput(source: string) {
   const rules = [
@@ -78,6 +73,14 @@ export function liteTE(source: string, options?: {
   options.allowUnsafeSource = !!options.allowUnsafeSource                         ;
 
   let fctBody = `
+  function checkValue(source: string) {
+    source = source
+      .replace(/javascript\s*:/g, "") // no javascript: from value
+      .replace(/\son\w+\s*=/g,"")     // no onXXXX event from value
+  
+    return rmTags(source);
+  }
+
   function rmTags(source) {
     var tags = {
       '&': '&amp;' ,
@@ -98,7 +101,7 @@ export function liteTE(source: string, options?: {
         break;
       case TokenType.Code:
         if (token.text.startsWith("=")) {
-          fctBody += `output += rmTags(${token.text.slice(1)});` + "\n";
+          fctBody += `output += checkValue(${token.text.slice(1)});` + "\n";
           break;
         }
         fctBody += token.text + "\n";
@@ -108,5 +111,5 @@ export function liteTE(source: string, options?: {
 
   fctBody += `return output;`
   !options.allowUnsafeSource && checkInput(fctBody);
-  return checkOutput(new Function(fctBody).call(options.context));
+  return new Function(fctBody).call(options.context);
 }  
