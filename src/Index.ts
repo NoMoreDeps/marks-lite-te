@@ -31,7 +31,7 @@ function* LiteTEGenerator(source: string) {
   }; 
 }
 function checkOutput(source: string) {
-  source = source.replace(/javascript\w*:/g, "");
+  source = source.replace(/javascript\s*:/g, "");
 
   return source;
 }
@@ -47,7 +47,7 @@ function checkInput(source: string) {
     /document/          , // Prevent the use of document
     /console/           , // Prevent the use of console
     /Function/          , // Prevent the use of Function
-    /localStorage/      , // Prevent the use of sessionStorage
+    /localStorage/      , // Prevent the use of localStorage
     /sessionStorage/    , // Prevent the use of sessionStorage
     /indexedDB/         , // Prevent the use of indexedDB
     /File/              , // Prevent the use of File
@@ -58,7 +58,7 @@ function checkInput(source: string) {
     /\.\s*call\s*\(/    , // Prevent calling function with call
     /\.\s*bind\s*\(/    , // Prevent bind function
     /\.\s*apply\s*\(/   , // Prevent calling function with apply
-    /\(.*?\)\s*\(.*?\)/ , // Prevent inline function call ex: (() => ...)() or (...)() pattern
+    /\)\s*\(.*?\)/      , // Prevent inline function call ex: (() => ...)() or (...)() pattern
     /XMLHttpRequest/    , // Prevent using XMLHttpRequest object
     /\[.*?\]\s*\(/        // Prevent running function from indexed properties like XXX[ZZZ]()
   ];
