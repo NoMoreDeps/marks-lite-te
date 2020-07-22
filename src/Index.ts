@@ -30,9 +30,65 @@ function* LiteTEGenerator(source: string) {
     text: source.substr(scanIndex)
   }; 
 }
+function checkOutput(source: string) {
+  source = source.replace(/javascript\w*:/g, "");
 
-export function liteTE(source: string, context: any = {}) {
+  return source;
+}
+
+function checkInput(source: string) {
+  const rules = [
+    /require\w*\(/      , // Prevent the use of require
+    /import.*?from/     , // Prevent the use of import
+    /\$/                , // Prevent the use of $
+    /jQuery/            , // Prevent the use of jQuery
+    /window/            , // Prevent the use of window
+    /global/            , // Prevent the use of global
+    /document/          , // Prevent the use of document
+    /console/           , // Prevent the use of console
+    /Function/          , // Prevent the use of Function
+    /localStorage/      , // Prevent the use of sessionStorage
+    /sessionStorage/    , // Prevent the use of sessionStorage
+    /indexedDB/         , // Prevent the use of indexedDB
+    /File/              , // Prevent the use of File
+    /FileReader/        , // Prevent the use of FileReader
+    /new\s+/            , // Prevent the use new keyword
+    /eval\s*\(/         , // Prevent the use of eval
+    /fetch\s*\(/        , // Prevent fetching data
+    /\.\s*call\s*\(/    , // Prevent calling function with call
+    /\.\s*bind\s*\(/    , // Prevent bind function
+    /\.\s*apply\s*\(/   , // Prevent calling function with apply
+    /\(.*?\)\s*\(.*?\)/ , // Prevent inline function call ex: (() => ...)() or (...)() pattern
+    /XMLHttpRequest/    , // Prevent using XMLHttpRequest object
+    /\[.*?\]\s*\(/        // Prevent running function from indexed properties like XXX[ZZZ]()
+  ];
+
+  rules.forEach(_ => {
+    if (_.test(source)) throw Error(`Template cannot be safely parsed, ${_.exec(source)![0]} is not allowed`);
+  });
+}
+
+export function liteTE(source: string, options?: {
+  context           ?: any,
+  allowUnsafeSource ?: boolean
+}) {
+
+  options                   = options ?? { context: {}, allowUnsafeSource: false} ;
+  options.context           = options.context ?? {}                               ;
+  options.allowUnsafeSource = !!options.allowUnsafeSource                         ;
+
   let fctBody = `
+  function rmTags(source) {
+    var tags = {
+      '&': '&amp;' ,
+      '<': '&lt;'  ,
+      '>': '&gt;'
+    };
+  
+    return source.replace(/[&<>]/g, function(tag) {
+      return tags[tag] || "";
+    });
+  }
   const LF   = "\\n";\n
   let output = "";\n\n`;
   for(let token of LiteTEGenerator(source)) {
@@ -42,7 +98,7 @@ export function liteTE(source: string, context: any = {}) {
         break;
       case TokenType.Code:
         if (token.text.startsWith("=")) {
-          fctBody += `output += ${token.text.slice(1)};` + "\n";
+          fctBody += `output += rmTags(${token.text.slice(1)});` + "\n";
           break;
         }
         fctBody += token.text + "\n";
@@ -51,5 +107,6 @@ export function liteTE(source: string, context: any = {}) {
   }
 
   fctBody += `return output;`
-    return new Function(fctBody).call(context);
-}
+  !options.allowUnsafeSource && checkInput(fctBody);
+  return checkOutput(new Function(fctBody).call(options.context));
+}  

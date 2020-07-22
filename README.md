@@ -25,7 +25,7 @@ const context = {
 
 // Use {% javascript statement %}
 // {%= javascript result of any value or expression %}
-// {% LF %} use LF to add a linefeed or "\\n"
+// {% LF %} use LF to add a line feed or "\\n"
 
 // The template source
 const source = `
